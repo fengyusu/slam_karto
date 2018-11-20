@@ -21,7 +21,7 @@
 #include <map>
 #include <vector>
 
-#include <open_karto/Karto.h>
+#include "open_karto/Karto.h"
 
 namespace karto
 {

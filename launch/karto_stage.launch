@@ -7,5 +7,6 @@
   <include file="$(find pr2_navigation_global)/rviz/rviz_move_base.launch"/>
   <node pkg="slam_karto" type="slam_karto" name="slam_karto" output="screen">
     <remap from="scan" to="base_scan"/>
+    <param name="map_update_interval" value="1"/>
   </node>
 </launch>

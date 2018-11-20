@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(slam_karto)
 
 if(NOT CMAKE_CXX_STANDARD)
-  #set(CMAKE_CXX_STANDARD 11)
+  #set(CMAKE_CXX_STANDARD 14)
 endif()
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
 
