@@ -3,13 +3,15 @@
 
   <include file="$(find slam_karto)/config/move_base.xml"/>
 
-  <node pkg="stage_ros" type="stageros" name="stageros" args="$(find roborts)/tools/worlds/icra.world" respawn="false" >
-
-    <param name="base_watchdog_timeout" value="0.01" />
+  <node pkg="stage_ros" type="stageros" name="stageros" args="$(find slam_karto)/worlds/willow-pr2-5cm.world" respawn="false" >
+  <remap from="base_scan" to="scan"/>
+    <param name="base_watchdog_timeout" value="0.5" />
   </node>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find roborts)/tools/rviz/rm.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find slam_karto)/config/karto_rviz.rviz" />
+  
   <node pkg="slam_karto" type="slam_karto" name="slam_karto" output="screen">
-    <remap from="scan" to="base_scan"/>
+    
+    <param name="map_update_interval" value="1"/>
   </node>
 </launch>

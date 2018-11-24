@@ -1,3 +1,3 @@
 Options: 
 
-Options:
+Options:-DCATKIN_DEVEL_PREFIX=/home/fengyu/karto_ws/devel

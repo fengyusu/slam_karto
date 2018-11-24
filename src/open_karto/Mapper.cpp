@@ -1212,6 +1212,8 @@ namespace karto
       means.push_back(scanPose);
       covariances.push_back(rCovariance);
       LinkChainToScan(pSensorManager->GetRunningScans(rSensorName), pScan, scanPose, rCovariance);
+
+      // CorrectPoses();
     }
 
     // link to other near chains (chains that include new scan are invalid)
@@ -1221,6 +1223,8 @@ namespace karto
     {
       pScan->SetSensorPose(ComputeWeightedMean(means, covariances));
     }
+
+    
   }
 
   kt_bool MapperGraph::TryCloseLoop(LocalizedRangeScan* pScan, const Name& rSensorName)

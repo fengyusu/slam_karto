@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 project(slam_karto)
 
-if(NOT CMAKE_CXX_STANDARD)
-  #set(CMAKE_CXX_STANDARD 14)
-endif()
+
+set(CMAKE_CXX_STANDARD 11)
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
 
 find_package(catkin REQUIRED
@@ -35,16 +34,21 @@ add_definitions(${EIGEN3_DEFINITIONS})
 
 catkin_package()
 
+add_subdirectory(src/g2o_karto)
 add_subdirectory(src/open_karto)
 
+
 add_executable(slam_karto src/slam_karto.cpp
+                          src/g2o_solver.cpp
                           src/spa_solver.cpp
                           src/spa/spa2d.cpp
                           src/spa/csparse.cpp)
 target_link_libraries(slam_karto 
 ${catkin_LIBRARIES}
 ${CSPARSE_LIBRARY}
+g2o_core g2o_stuff g2o_types_sba g2o_csparse_extension
 karto
+g2o_karto
  )
 
 install(TARGETS slam_karto

@@ -39,6 +39,7 @@
 #include "open_karto/Mapper.h"
 
 #include "spa_solver.h"
+#include "g2o_solver.h"
 
 #include <boost/thread.hpp>
 
@@ -97,7 +98,7 @@ class SlamKarto
     // Karto bookkeeping
     karto::Mapper* mapper_;
     karto::Dataset* dataset_;
-    SpaSolver* solver_;
+    G2oSolver* solver_;
     std::map<std::string, karto::LaserRangeFinder*> lasers_;
     std::map<std::string, bool> lasers_inverted_;
 
@@ -280,7 +281,7 @@ SlamKarto::SlamKarto() :
     mapper_->setParamUseResponseExpansion(use_response_expansion);
 
   // Set solver to be used in loop closure
-  solver_ = new SpaSolver();
+  solver_ = new G2oSolver();
   mapper_->SetScanSolver(solver_);
 }
 
@@ -451,9 +452,9 @@ SlamKarto::publishGraphVisualization()
   m.pose.position.x = 0.0;
   m.pose.position.y = 0.0;
   m.pose.position.z = 0.0;
-  m.scale.x = 0.1;
-  m.scale.y = 0.1;
-  m.scale.z = 0.1;
+  m.scale.x = 0.05;
+  m.scale.y = 0.05;
+  m.scale.z = 0.05;
   m.color.r = 1.0;
   m.color.g = 0;
   m.color.b = 0.0;
@@ -467,9 +468,9 @@ SlamKarto::publishGraphVisualization()
   edge.ns = "karto";
   edge.id = 0;
   edge.type = visualization_msgs::Marker::LINE_STRIP;
-  edge.scale.x = 0.1;
-  edge.scale.y = 0.1;
-  edge.scale.z = 0.1;
+  edge.scale.x = 0.03;
+  edge.scale.y = 0.03;
+  edge.scale.z = 0.03;
   edge.color.a = 1.0;
   edge.color.r = 0.0;
   edge.color.g = 0.0;

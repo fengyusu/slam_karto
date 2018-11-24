@@ -42,118 +42,11 @@
 
 #include "open_karto/Math.h"
 #include "open_karto/Macros.h"
-
-#define KARTO_Object(name) \
-  virtual const char* GetClassName() const { return #name; } \
-  virtual kt_objecttype GetObjectType() const { return ObjectType_##name; }
-
-typedef kt_int32u kt_objecttype;
-
-const kt_objecttype ObjectType_None                         = 0x00000000;
-const kt_objecttype ObjectType_Sensor                       = 0x00001000;
-const kt_objecttype ObjectType_SensorData                   = 0x00002000;
-const kt_objecttype ObjectType_CustomData                   = 0x00004000;
-const kt_objecttype ObjectType_Misc                         = 0x10000000;
-
-const kt_objecttype ObjectType_Drive                        = ObjectType_Sensor | 0x01;
-const kt_objecttype ObjectType_LaserRangeFinder             = ObjectType_Sensor | 0x02;
-const kt_objecttype ObjectType_Camera                       = ObjectType_Sensor | 0x04;
-
-const kt_objecttype ObjectType_DrivePose                    = ObjectType_SensorData | 0x01;
-const kt_objecttype ObjectType_LaserRangeScan               = ObjectType_SensorData | 0x02;
-const kt_objecttype ObjectType_LocalizedRangeScan           = ObjectType_SensorData | 0x04;
-const kt_objecttype ObjectType_CameraImage                  = ObjectType_SensorData | 0x08;
-const kt_objecttype ObjectType_LocalizedRangeScanWithPoints = ObjectType_SensorData | 0x16;
-
-const kt_objecttype ObjectType_Header                       = ObjectType_Misc | 0x01;
-const kt_objecttype ObjectType_Parameters                   = ObjectType_Misc | 0x02;
-const kt_objecttype ObjectType_DatasetInfo                  = ObjectType_Misc | 0x04;
-const kt_objecttype ObjectType_Module                       = ObjectType_Misc | 0x08;
+#include "open_karto/Exception.h"
 
 namespace karto
 {
 
-  /**
-   * \defgroup OpenKarto OpenKarto Module
-   */
-  /*@{*/
-
-  /**
-   * Exception class. All exceptions thrown from Karto will inherit from this class or be of this class
-   */
-  class KARTO_EXPORT Exception
-  {
-  public:
-    /**
-     * Constructor with exception message
-     * @param rMessage exception message (default: "Karto Exception")
-     * @param errorCode error code (default: 0)
-     */
-    Exception(const std::string& rMessage = "Karto Exception", kt_int32s errorCode = 0)
-      : m_Message(rMessage)
-      , m_ErrorCode(errorCode)
-    {
-    }
-
-    /**
-     * Copy constructor
-     */
-    Exception(const Exception& rException)
-      : m_Message(rException.m_Message)
-      , m_ErrorCode(rException.m_ErrorCode)
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    virtual ~Exception()
-    {
-    }
-
-  public:
-    /**
-     * Assignment operator
-     */
-    Exception& operator = (const Exception& rException)
-    {
-      m_Message = rException.m_Message;
-      m_ErrorCode = rException.m_ErrorCode;
-
-      return *this;
-    }
-
-  public:
-    /**
-     * Gets the exception message
-     * @return error message as string
-     */
-    const std::string& GetErrorMessage() const
-    {
-      return m_Message;
-    }
-
-    /**
-     * Gets error code
-     * @return error code
-     */
-    kt_int32s GetErrorCode()
-    {
-      return m_ErrorCode;
-    }
-
-  public:
-    /**
-     * Write exception to output stream
-     * @param rStream output stream
-     * @param rException exception to write
-     */
-    friend KARTO_EXPORT std::ostream& operator << (std::ostream& rStream, Exception& rException);
-
-  private:
-    std::string m_Message;
-    kt_int32s m_ErrorCode;
-  };  // class Exception
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////

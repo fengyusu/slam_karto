@@ -1,4 +1,4 @@
-/home/fengyu/software/clion-2018.1.5/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/fengyu/karto_ws/src/slam_karto
+/home/fengyu/software/clion-2018.1.5/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCATKIN_DEVEL_PREFIX=/home/fengyu/karto_ws/devel -G "CodeBlocks - Unix Makefiles" /home/fengyu/karto_ws/src/slam_karto
 -- The C compiler identification is GNU 5.4.0
 -- The CXX compiler identification is GNU 5.4.0
 -- Check for working C compiler: /usr/bin/cc

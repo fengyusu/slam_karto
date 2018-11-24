@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//No help, variable specified on the command line.
+CATKIN_DEVEL_PREFIX:UNINITIALIZED=/home/fengyu/karto_ws/devel
+
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
