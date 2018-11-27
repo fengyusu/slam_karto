@@ -7,7 +7,7 @@ define block model
 define topurg ranger
 (
   sensor(
-    range_max 30.0
+    range_max 4.0
     fov 270.25
     samples 1081
   )
@@ -18,7 +18,7 @@ define topurg ranger
 
 define pr2 position
 (
-  size [0.25 0.25 0.25]
+  size [0.05 0.05 0.05]
   origin [-0.05 0 0 0]
   gui_nose 0.5
   drive "omni"

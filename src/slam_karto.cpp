@@ -37,9 +37,11 @@
 #include "nav_msgs/GetMap.h"
 
 #include "open_karto/Mapper.h"
+#include "open_karto/Karto.h"
 
 #include "spa_solver.h"
 #include "g2o_solver.h"
+#include "ceres_solver.h"
 
 #include <boost/thread.hpp>
 
@@ -98,7 +100,8 @@ class SlamKarto
     // Karto bookkeeping
     karto::Mapper* mapper_;
     karto::Dataset* dataset_;
-    G2oSolver* solver_;
+    // G2oSolver* solver_;
+    CeresSolver* solver_;
     std::map<std::string, karto::LaserRangeFinder*> lasers_;
     std::map<std::string, bool> lasers_inverted_;
 
@@ -281,7 +284,7 @@ SlamKarto::SlamKarto() :
     mapper_->setParamUseResponseExpansion(use_response_expansion);
 
   // Set solver to be used in loop closure
-  solver_ = new G2oSolver();
+  solver_ = new CeresSolver();
   mapper_->SetScanSolver(solver_);
 }
 

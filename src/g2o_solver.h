@@ -2,8 +2,8 @@
 // Created by fengyu on 18-11-15.
 //
 
-#ifndef TEST_SLAM_POSE_GRAPH_G_2_O_HPP
-#define TEST_SLAM_POSE_GRAPH_G_2_O_HPP
+#ifndef KARTO_G2O_SOLVER_H
+#define KARTO_G2O_SOLVER_H
 
 #include <vector>
 #include <map>
@@ -54,5 +54,5 @@ private:
 };
 
 
-#endif //TEST_SLAM_POSE_GRAPH_G_2_O_HPP
+#endif //KARTO_G2O_SOLVER_H
 

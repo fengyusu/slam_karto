@@ -87,12 +87,12 @@ void G2oSolver::Compute()
     optimizer_.optimize(3);
   ROS_INFO("Finished g2o for loop closure");
   
-//   optimizer_.vertices().clear();
-    // optimizer_.clear();
 
-    // Factory::destroy();
-    // OptimizationAlgorithmFactory::destroy();
-    // HyperGraphActionLibrary::destroy();
+  for(auto vertex : optimizer_.vertices()){
+    const VertexSE2* v = static_cast<const VertexSE2*>(vertex.second);
+    karto::Pose2 pose(v->estimate().translation()[0], v->estimate().translation()[1], v->estimate().rotation().angle());
+    corrections.push_back(std::make_pair(vertex.first, pose));
+  }
 
 }
 

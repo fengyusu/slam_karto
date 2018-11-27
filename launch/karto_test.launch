@@ -11,7 +11,10 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find slam_karto)/config/karto_rviz.rviz" />
   
   <node pkg="slam_karto" type="slam_karto" name="slam_karto" output="screen">
-    
-    <param name="map_update_interval" value="1"/>
+    <rosparam file="$(find slam_karto)/config/mapper_params.yaml" command="load"/>
+    <param name="map_update_interval" value="2"/>
   </node>
+
+  <node pkg="slam_karto" type="teleopt_nav" name="teleopt_nav" output="screen" />
+
 </launch>
