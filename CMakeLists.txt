@@ -17,6 +17,8 @@ find_package(catkin REQUIRED
 #    sparse_bundle_adjustment
     tf
     visualization_msgs
+
+    roborts
 )
 
 find_package(Eigen3 REQUIRED)
@@ -32,10 +34,10 @@ include_directories(${catkin_INCLUDE_DIRS}
   ${CSPARSE_INCLUDE_DIR}
   ${G2O_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
+  /home/fengyu/robomaster_ws/devel/include
   )
   
 
-add_definitions(${EIGEN3_DEFINITIONS})
 
 catkin_package()
 
@@ -52,8 +54,9 @@ ${catkin_LIBRARIES}
 ${CSPARSE_LIBRARY}
 ${CERES_LIBRARIES}
 g2o_core g2o_stuff g2o_types_sba g2o_csparse_extension
-karto
 g2o_karto
+karto
+
  )
 
 install(TARGETS slam_karto
@@ -63,3 +66,8 @@ install(TARGETS slam_karto
 
 add_executable(teleopt_nav src/karto_teleopt.cpp)
 target_link_libraries(teleopt_nav ${catkin_LIBRARIES})
+
+#add_executable(karto_decision src/karto_decision.cpp)
+#target_link_libraries(karto_decision ${catkin_LIBRARIES})
+
+

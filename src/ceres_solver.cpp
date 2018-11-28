@@ -45,7 +45,8 @@ public:
 
         Eigen::Map<Eigen::Matrix<T, 3, 1> > residuals_map(residuals_ptr);
 
-        residuals_map.template head<2>() = RotationMatrix2D(static_cast<T>(yaw_ab_radians_)).transpose() * (RotationMatrix2D(*yaw_a).transpose() * (p_b - p_a) - p_ab_.cast<T>());
+        residuals_map.template head<2>() = RotationMatrix2D(static_cast<T>(yaw_ab_radians_)).transpose() *
+                                          (RotationMatrix2D(*yaw_a).transpose() * (p_b - p_a) - p_ab_.cast<T>());
         residuals_map(2) = NormalizeAngle(
                 (*yaw_b - *yaw_a) - static_cast<T>(yaw_ab_radians_));
 

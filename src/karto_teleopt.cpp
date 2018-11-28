@@ -105,7 +105,7 @@ void TeleoptNode::keyMouseLoop(void)
             return;
     }
 
-    while(true)
+    while(ros::ok())
     {  
         tv.tv_sec = 5;
         tv.tv_usec = 0;

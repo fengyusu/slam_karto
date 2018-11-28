@@ -566,11 +566,16 @@ SlamKarto::updateMap()
 {
   boost::mutex::scoped_lock lock(map_mutex_);
 
-  karto::OccupancyGrid* occ_grid = 
-          karto::OccupancyGrid::CreateFromScans(mapper_->GetAllProcessedScans(), resolution_);
+  mapper_->CreateOccupancyGrid(resolution_);
+  const karto::OccupancyGrid* occ_grid = mapper_->GetOccupancyGrid();
 
-  if(!occ_grid)
+
+  // karto::OccupancyGrid* occ_grid = karto::OccupancyGrid::CreateFromScans(mapper_->GetAllProcessedScans(), resolution_);
+
+  if(!occ_grid){
     return false;
+  }
+    
 
   if(!got_map_) {
     map_.map.info.resolution = resolution_;
@@ -632,7 +637,7 @@ SlamKarto::updateMap()
   sst_.publish(map_.map);
   sstm_.publish(map_.map.info);
 
-  delete occ_grid;
+  // delete occ_grid;
 
   return true;
 }

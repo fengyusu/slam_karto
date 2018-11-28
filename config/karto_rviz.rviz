@@ -27,7 +27,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -187,8 +187,6 @@ Visualization Manager:
           Value: true
         base_link:
           Value: true
-        map:
-          Value: true
         odom:
           Value: true
       Marker Scale: 1
@@ -197,12 +195,7 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          odom:
-            base_footprint:
-              base_link:
-                base_laser_link:
-                  {}
+        {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -233,7 +226,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker_array
       Name: MarkerArray
       Namespaces:
-        karto: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1

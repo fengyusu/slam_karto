@@ -23,6 +23,9 @@
 
 #include <open_karto/Karto.h>
 
+#include "SensorDataManager.h"
+#include "ScanMatcherBasedOptimize.h"
+
 namespace karto
 {
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1180,163 +1183,7 @@ namespace karto
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
 
-  class ScanManager;
 
-  /**
-   * Manages the devices for the mapper
-   */
-  class KARTO_EXPORT MapperSensorManager  // : public SensorManager
-  {
-    typedef std::map<Name, ScanManager*> ScanManagerMap;
-
-  public:
-    /**
-     * Constructor
-     */
-    MapperSensorManager(kt_int32u runningBufferMaximumSize, kt_double runningBufferMaximumDistance)
-      : m_RunningBufferMaximumSize(runningBufferMaximumSize)
-      , m_RunningBufferMaximumDistance(runningBufferMaximumDistance)
-      , m_NextScanId(0)
-    {
-    }
-
-    /**
-     * Destructor
-     */
-    virtual ~MapperSensorManager()
-    {
-      Clear();
-    }
-
-  public:
-    /**
-     * Registers a sensor (with given name); do
-     * nothing if device already registered
-     * @param rSensorName
-     */
-    void RegisterSensor(const Name& rSensorName);
-
-    /**
-     * Gets scan from given sensor with given ID
-     * @param rSensorName
-     * @param scanIndex
-     * @return localized range scan
-     */
-    LocalizedRangeScan* GetScan(const Name& rSensorName, kt_int32s scanIndex);
-
-    /**
-     * Gets names of all sensors
-     * @return sensor names
-     */
-    inline std::vector<Name> GetSensorNames()
-    {
-      std::vector<Name> deviceNames;
-      const_forEach(ScanManagerMap, &m_ScanManagers)
-      {
-        deviceNames.push_back(iter->first);
-      }
-
-      return deviceNames;
-    }
-
-    /**
-     * Gets last scan of given sensor
-     * @param rSensorName
-     * @return last localized range scan of sensor
-     */
-    LocalizedRangeScan* GetLastScan(const Name& rSensorName);
-
-    /**
-     * Sets the last scan of device of given scan
-     * @param pScan
-     */
-    inline void SetLastScan(LocalizedRangeScan* pScan);
-
-    /**
-     * Gets the scan with the given unique id
-     * @param id
-     * @return scan
-     */
-    inline LocalizedRangeScan* GetScan(kt_int32s id)
-    {
-      assert(math::IsUpTo(id, (kt_int32s)m_Scans.size()));
-
-      return m_Scans[id];
-    }
-
-    /**
-     * Adds scan to scan vector of device that recorded scan
-     * @param pScan
-     */
-    void AddScan(LocalizedRangeScan* pScan);
-
-    /**
-     * Adds scan to running scans of device that recorded scan
-     * @param pScan
-     */
-    void AddRunningScan(LocalizedRangeScan* pScan);
-
-    /**
-     * Gets scans of device
-     * @param rSensorName
-     * @return scans of device
-     */
-    LocalizedRangeScanVector& GetScans(const Name& rSensorName);
-
-    /**
-     * Gets running scans of device
-     * @param rSensorName
-     * @return running scans of device
-     */
-    LocalizedRangeScanVector& GetRunningScans(const Name& rSensorName);
-
-    /**
-     * Gets all scans of all devices
-     * @return all scans of all devices
-     */
-    LocalizedRangeScanVector GetAllScans();
-
-    /**
-     * Deletes all scan managers of all devices
-     */
-    void Clear();
-
-  private:
-    /**
-     * Get scan manager for localized range scan
-     * @return ScanManager
-     */
-    inline ScanManager* GetScanManager(LocalizedRangeScan* pScan)
-    {
-      return GetScanManager(pScan->GetSensorName());
-    }
-
-    /**
-     * Get scan manager for id
-     * @param rSensorName
-     * @return ScanManager
-     */
-    inline ScanManager* GetScanManager(const Name& rSensorName)
-    {
-      if (m_ScanManagers.find(rSensorName) != m_ScanManagers.end())
-      {
-        return m_ScanManagers[rSensorName];
-      }
-
-      return NULL;
-    }
-
-  private:
-    // map from device ID to scan data
-    ScanManagerMap m_ScanManagers;
-
-    kt_int32u m_RunningBufferMaximumSize;
-    kt_double m_RunningBufferMaximumDistance;
-
-    kt_int32s m_NextScanId;
-
-    std::vector<LocalizedRangeScan*> m_Scans;
-  };  // MapperSensorManager
 
   ////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -1600,9 +1447,9 @@ namespace karto
      * Gets the device manager
      * @return device manager
      */
-    inline MapperSensorManager* GetMapperSensorManager() const
+    inline MapperSensorDataManager* GetMapperSensorManager() const
     {
-      return m_pMapperSensorManager;
+      return m_pMapperSensorDataManager;
     }
 
     /**
@@ -1681,15 +1528,30 @@ namespace karto
   public:
     void SetUseScanMatching(kt_bool val) { m_pUseScanMatching->SetValue(val); }
 
+    void CreateOccupancyGrid(double resolution){
+      if(occupancy_grid_ != nullptr){
+        delete occupancy_grid_;
+      }
+      // delete occupancy_grid_;
+      occupancy_grid_ = OccupancyGrid::CreateFromScans(GetAllProcessedScans(), resolution);
+    }
+
+    OccupancyGrid* GetOccupancyGrid(void) const{
+      return occupancy_grid_;
+    }
+
   private:
     kt_bool m_Initialized;
 
     ScanMatcher* m_pSequentialScanMatcher;
 
-    MapperSensorManager* m_pMapperSensorManager;
+    MapperSensorDataManager* m_pMapperSensorDataManager;
 
     MapperGraph* m_pGraph;
     ScanSolver* m_pScanOptimizer;
+
+    ScanMatcherBasedOptimize* scan_matcher_;
+    OccupancyGrid* occupancy_grid_;
 
     std::vector<MapperListener*> m_Listeners;
 

@@ -1,4 +1,6 @@
 # General Parameters
+resolution: 0.05
+
 use_scan_matching: true
 use_scan_barycenter: true
 minimum_travel_distance: 0.2 

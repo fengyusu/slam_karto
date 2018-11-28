@@ -1,0 +1,267 @@
+//
+// Created by fengyusu on 18-11-20.
+//
+
+#ifndef PROJECT_SCANMATCHER_BASED_OPTIMIZE_H
+#define PROJECT_SCANMATCHER_BASED_OPTIMIZE_H
+
+
+#include "Karto.h"
+#include "SensorDataManager.h"
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <ceres/ceres.h>
+
+
+namespace karto {
+
+template <typename T>
+inline bool PointInMap(Eigen::Matrix<T, 2, 1> point, OccupancyGrid* occupancy_grid){
+            BoundingBox2 map_bounding = occupancy_grid->GetBoundingBox();
+            double bound_tolerance = occupancy_grid->GetResolution() * 2;
+            if(point[0] > T(map_bounding.GetMinimum().GetX() + bound_tolerance) && 
+               point[1] > T(map_bounding.GetMinimum().GetY() + bound_tolerance) && 
+               point[0] < T(map_bounding.GetMaximum().GetX() - bound_tolerance) && 
+               point[1] < T(map_bounding.GetMaximum().GetY() - bound_tolerance)){
+                   return true;
+            }
+            return false;
+        }
+
+template <typename T>
+inline Eigen::Matrix<T, 2, 2> RotationMatrix2D(T yaw_radians) {
+    const T cos_yaw = ceres::cos(yaw_radians);
+    const T sin_yaw = ceres::sin(yaw_radians);
+
+    Eigen::Matrix<T, 2, 2> rotation;
+    rotation << cos_yaw, -sin_yaw, sin_yaw, cos_yaw;
+    return rotation;
+}
+
+template <typename T>
+inline T NormalizeAngle(const T& angle_radians) {
+    T two_pi(2.0 * M_PI);
+    return angle_radians -
+           two_pi * ceres::floor((angle_radians + T(M_PI)) / two_pi);
+}
+
+struct ScanToMapErrorTerm {
+public:
+    ScanToMapErrorTerm(const Eigen::Vector2d& range_point,
+                       OccupancyGrid* occupancy_grid)
+            : range_point_(range_point),
+              occupancy_grid_(occupancy_grid){}
+
+    template <typename T>
+    bool operator()(const T* const pose_x, const T* const pose_y, const T* const pose_yaw,
+                    T* residual) const {
+        const Eigen::Matrix<T, 2, 1> pose_t(*pose_x, *pose_y);
+        Eigen::Matrix<T, 2, 1> map_point;
+
+
+        map_point = RotationMatrix2D<T>(*pose_yaw) * (range_point_.cast<T>()) + pose_t;
+
+        T scan_match_response;
+
+        const Eigen::Matrix<double, 2, 1> map_point_d ;//= static_cast<Eigen::Matrix<double, 2, 1>>(map_point);
+        if(PointInMap(map_point, occupancy_grid_)){
+
+            T x = map_point[0];
+            T y = map_point[1];
+
+            double resolution = T(occupancy_grid_->GetResolution());
+            Vector2<double> offset = occupancy_grid_->GetCoordinateConverter()->GetOffset();
+            double gridX = (x - offset.GetX()) / resolution;
+            double gridY = (y - offset.GetY()) / resolution;
+
+            Vector2<kt_int32s> grid00(static_cast<kt_int32s>(gridX), static_cast<kt_int32s>(gridY));
+            Vector2<kt_int32s> grid01(static_cast<kt_int32s>(gridX), static_cast<kt_int32s>(gridY) + 1);
+            Vector2<kt_int32s> grid10(static_cast<kt_int32s>(gridX) + 1, static_cast<kt_int32s>(gridY));
+            Vector2<kt_int32s> grid11(static_cast<kt_int32s>(gridX) + 1, static_cast<kt_int32s>(gridY)+ 1);
+
+            double m_p00,m_p01,m_p10,m_p11;
+            if(occupancy_grid_->GetValue(grid00) == GridStates_Occupied){
+                m_p00 = 1;
+            }else{
+                m_p00 = 0;
+            }
+            if(occupancy_grid_->GetValue(grid01) == GridStates_Occupied){
+                m_p01 = 1;
+            }else{
+                m_p01 = 0;
+            }
+            if(occupancy_grid_->GetValue(grid10) == GridStates_Occupied){
+                m_p10 = 1;
+            }else{
+                m_p10 = 0;
+            }
+            if(occupancy_grid_->GetValue(grid11) == GridStates_Occupied){
+                m_p11 = 1;
+            }else{
+                m_p11 = 0;
+            }
+
+            Vector2<double> world00 = occupancy_grid_->GridToWorld(grid00);
+            Vector2<double> world11 = occupancy_grid_->GridToWorld(grid11);
+            double x0 = world00.GetX();
+            double y0 = world00.GetY();
+            double x1 = world11.GetX();
+            double y1 = world11.GetY();
+
+            
+            scan_match_response = ((y - y0) / (y1 - y0)) * (m_p11 * (x -x0) / (x1 - x0) + m_p01 * (x1 - x) / (x1 - x0)) + 
+                                  ((y1 - y) / (y1 - y0)) * (m_p10 * (x -x0) / (x1 - x0) + m_p01 * (x1 - x) / (x1 - x0));
+
+            scan_match_response = (scan_match_response >= 0) ? ((scan_match_response <= 1) ? (scan_match_response) : (1)) : (0);
+            
+        }else{
+            scan_match_response = T(0);
+        }
+
+        scan_match_response = (scan_match_response >= T(0)) ? ((scan_match_response <= T(1)) ? (scan_match_response) : (T(1))) : (T(0));
+        residual[0] = T(1) - scan_match_response;
+
+
+        return true;
+    }
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+private:
+    const Eigen::Vector2d range_point_;
+    OccupancyGrid* occupancy_grid_;
+};
+
+/**
+ * Scan matcher
+ */
+    class ScanMatcherBasedOptimize
+    {
+    public:
+        /**
+         * Destructor
+         */
+        virtual ~ScanMatcherBasedOptimize();
+
+    public:
+        /**
+         * Create a scan matcher with the given parameters
+         */
+        static ScanMatcherBasedOptimize* Create(MapperSensorDataManager* p_sensordata_manager);
+
+        double MatchScan(LocalizedRangeScan* pScan,
+                        OccupancyGrid* occupancy_grid,
+                        Pose2& rMean, Matrix3& rCovariance){
+            if(occupancy_grid != nullptr){
+                occupancy_grid_ = occupancy_grid;
+                std::cout << "map width : " << occupancy_grid_->GetWidth() 
+                        << "    map height : " << occupancy_grid_->GetHeight() << std::endl;
+            }else{
+                std::cout << "null map !" << std::endl;
+            }         
+
+
+            estimate_x_ = pScan->GetSensorPose().GetX();
+            estimate_y_ = pScan->GetSensorPose().GetY();
+            estimate_yaw_ = pScan->GetSensorPose().GetHeading();
+
+
+            const PointVectorDouble& rPointReadings = pScan->GetPointReadings();
+            Transform transform(pScan->GetSensorPose());
+            Pose2Vector localPoints;
+            const_forEach(PointVectorDouble, &rPointReadings)
+            {
+                Pose2 vec = transform.InverseTransformPose(Pose2(*iter, 0.0));
+                localPoints.push_back(vec);
+            }
+
+            std::vector<Eigen::Vector2d> range_points;
+            for(const auto range_point : localPoints){
+                Eigen::Vector2d point(range_point.GetX(), range_point.GetY());
+                // if(PointInMap(point, occupancy_grid_)){
+                //     range_points.push_back(point);
+                // }
+                range_points.push_back(point);
+            }
+
+            ceres::Problem problem;
+            BuildOptimizationProblem(range_points, &problem);
+            SolveOptimizationProblem(&problem);
+
+            rMean.SetX(estimate_x_);
+            rMean.SetY(estimate_y_);
+            rMean.SetHeading(estimate_yaw_);
+                            
+        }
+  
+
+    private:
+
+        void BuildOptimizationProblem(const std::vector<Eigen::Vector2d>& range_points,
+                                      ceres::Problem* problem) {
+            CHECK(problem != NULL);
+            if (range_points.empty()) {
+                LOG(INFO) << "No measurements, no problem to optimize.";
+                return;
+            }
+
+            ceres::LossFunction* loss_function = nullptr;
+            
+            for(const auto range_point : range_points){
+                ceres::CostFunction* cost_function =
+                        new ceres::AutoDiffCostFunction<ScanToMapErrorTerm, 1, 1, 1, 1>
+                        (new ScanToMapErrorTerm(range_point, occupancy_grid_));
+                problem->AddResidualBlock(
+                        cost_function, loss_function,
+                        &estimate_x_, &estimate_y_, &estimate_yaw_);
+            }
+
+        }
+
+
+        bool SolveOptimizationProblem(ceres::Problem* problem) {
+            CHECK(problem != NULL);
+
+            ceres::Solver::Options options;
+            options.max_num_iterations = 10;
+            options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+
+            ceres::Solver::Summary summary;
+            ceres::Solve(options, problem, &summary);
+
+            std::cout << summary.FullReport() << std::endl;
+
+            best_pose_ << estimate_x_, estimate_y_, estimate_yaw_;
+            std::cout << "best_pose_ : " << best_pose_.transpose() << std::endl;
+
+            return summary.IsSolutionUsable();
+        }
+
+        
+
+    protected:
+        /**
+         * Default constructor
+         */
+        ScanMatcherBasedOptimize(MapperSensorDataManager* p_sensordata_manager):
+        p_sensordata_manager_(p_sensordata_manager)
+        {
+        }
+
+    private:
+  
+    MapperSensorDataManager* p_sensordata_manager_;
+    OccupancyGrid* occupancy_grid_;
+
+    Eigen::Vector3d best_pose_;
+    double estimate_x_;
+    double estimate_y_;
+    double estimate_yaw_;
+
+    };  // ScanMatcher
+
+
+}
+
+#endif //PROJECT_SCANMATCHER_H
