@@ -24,7 +24,7 @@
 #define EIGEN_USE_NEW_STDVECTOR
 #endif // EIGEN_USE_NEW_STDVECTOR
 
-#define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat(10)
+// #define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat(10)
 #include <Eigen/Eigen>
 
 #include "spa2d.h"

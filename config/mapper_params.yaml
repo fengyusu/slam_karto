@@ -17,7 +17,7 @@ loop_match_minimum_response_coarse: 0.8
 loop_match_minimum_response_fine: 0.8
 
 # Correlation Parameters - Correlation Parameters
-correlation_search_space_dimension: 0.3
+correlation_search_space_dimension: 0.5
 correlation_search_space_resolution: 0.01
 correlation_search_space_smear_deviation: 0.03
 

@@ -48,6 +48,11 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <chrono>   
+#include <ctime>
+
+using namespace std;
+using namespace chrono;
 
 // compute linear index for given map coords
 #define MAP_IDX(sx, i, j) ((sx) * (j) + (i))
@@ -528,6 +533,8 @@ SlamKarto::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
 
   static ros::Time last_map_update(0,0);
 
+  std::cout << "get a scan !  *******************************" << std::endl;
+
   // Check whether we know about this laser yet
   karto::LaserRangeFinder* laser = getLaser(scan);
 
@@ -551,14 +558,24 @@ SlamKarto::laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
     if(!got_map_ || 
        (scan->header.stamp - last_map_update) > map_update_interval_)
     {
+      auto start = std::chrono::system_clock::now();
       if(updateMap())
       {
         last_map_update = scan->header.stamp;
         got_map_ = true;
         ROS_DEBUG("Updated the map");
       }
+
+      auto end = std::chrono::system_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+      cout <<  "update map cost " 
+        << double(duration.count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den 
+        << " seconds !" << endl;
     }
   }
+
+
+  std::cout << "end a scan cycle!  *******************************" << std::endl << std::endl;
 }
 
 bool
@@ -675,10 +692,19 @@ SlamKarto::addScan(karto::LaserRangeFinder* laser,
   range_scan->SetOdometricPose(karto_pose);
   range_scan->SetCorrectedPose(karto_pose);
 
+  
   // Add the localized range scan to the mapper
   bool processed;
+
+  auto start = std::chrono::system_clock::now();
   if((processed = mapper_->Process(range_scan)))
   {
+    auto end = std::chrono::system_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    cout <<  "slam process cost " 
+      << double(duration.count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den 
+      << " seconds !" << endl;
+
     //std::cout << "Pose: " << range_scan->GetOdometricPose() << " Corrected Pose: " << range_scan->GetCorrectedPose() << std::endl;
     
     karto::Pose2 corrected_pose = range_scan->GetCorrectedPose();

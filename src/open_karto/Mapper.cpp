@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <stdexcept>
@@ -22,6 +23,7 @@
 #include <set>
 #include <list>
 #include <iterator>
+#include <chrono>
 
 #include <math.h>
 #include <assert.h>
@@ -2020,12 +2022,21 @@ namespace karto
       if (m_pUseScanMatching->GetValue() && pLastScan != NULL)
       {
         Pose2 bestPose;
+
+        auto start = std::chrono::system_clock::now();
+        
         m_pSequentialScanMatcher->MatchScan(pScan,
                                             m_pMapperSensorDataManager->GetRunningScans(pScan->GetSensorName()),
                                                                                     bestPose,
                                                                                     covariance);
+                                                                                    auto end = std::chrono::system_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout <<  "scan_match cost " 
+             << double(duration.count()) * std::chrono::microseconds::period::num / std::chrono::microseconds::period::den 
+             << " seconds !" << std::endl;
+
         //use optimize method to scanmatch
-         scan_matcher_->MatchScan(pScan, occupancy_grid_, bestPose, covariance);
+        //  scan_matcher_->MatchScan(pScan, occupancy_grid_, bestPose, covariance);
 
         pScan->SetSensorPose(bestPose);
       }

@@ -9,7 +9,6 @@ add_library(karto SHARED
             Karto.cpp Mapper.cpp
             ScanMatcherBasedOptimize.cpp
             Karto.h Mapper.h Exception.h Macros.h Types.h Math.h
-            ScanMatcherBasedOptimize.h
 )
 target_link_libraries(karto ${Boost_LIBRARIES})
 
